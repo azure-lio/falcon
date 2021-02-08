@@ -1,6 +1,7 @@
 #!/bin/bash
 #Basic enviroment set
 
+set -v
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 if [ ! -f $TOP_DIR/config ]; then
     echo "config does not exit"
@@ -16,7 +17,7 @@ if [ -z "$SERVER_IP" ] ;then
     exit 0
 fi
 
-HOSTNAME=${HOSTNAME:-Controller}
+HOSTNAME=${HOSTNAME:-controller}
 PASSWORD=${PASSWORD:-123456}
 MASK_LEN=${MASK_LEN:-24}
 
@@ -68,8 +69,13 @@ function_rocky()
 function_mariadb()
 {
     yum install -y mariadb mariadb-server python2-PyMySQL
+    if [ ! -f /etc/my.cnf.d/openstack.cnf ] ; then
+        touch /etc/my.cnf.d/openstack.cnf
+    fi
+    
+    echo "[mysqld]" >>/etc/my.cnf.d/openstack.cnf
 
-    sed -i '$a\\[mysqld\]' etc/my.cnf.d/openstack.cnf
+    #sed -i '$a\\[mysqld\]' /etc/my.cnf.d/openstack.cnf
     sed -i '$a bind-address = '"$SERVER_IP"''  /etc/my.cnf.d/openstack.cnf
     sed -i '$a default-storage-engine = innodb'  /etc/my.cnf.d/openstack.cnf
     sed -i '$a innodb_file_per_table = on'  /etc/my.cnf.d/openstack.cnf
@@ -103,7 +109,7 @@ install_memcache()
 {
     #memcache install
     yum install -y  memcached python-memcached
-    sed -i "s/-l 127.0.0.1,::1/-l 127.0.0.1,::1,controller/g" /etc/sysconfig/memcached
+    sed -i "s/-l 127.0.0.1,::1/-l 127.0.0.1,::1,'"$HOSTNAME"'/g" /etc/sysconfig/memcached
     systemctl enable memcached.service && systemctl start memcached.service
 }
 
@@ -113,18 +119,17 @@ install_etcd()
 
 #install  etcd
     yum install -y etcd
-    rm -f /etc/etcd/etcd.conf
     sed -i '/^/,$d' /etc/etcd/etcd.conf
     echo "#[Member]" > /etc/etcd/etcd.conf
 
     sed -i '$a  ETCD_DATA_DIR="/var/lib/etcd/default.etcd"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_LISTEN_PEER_URLS="http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_LISTEN_CLIENT_URLS="http://'"$SERVER_IP"':2379"' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_NAME="controller"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_NAME="'"$HOSTNAME"'"' /etc/etcd/etcd.conf
     sed -i '$a  #[Clustering]' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_ADVERTISE_PEER_URLS="http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_ADVERTISE_CLIENT_URLS="http://'"$SERVER_IP"':2379"' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_INITIAL_CLUSTER="controller=http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_INITIAL_CLUSTER="'"$HOSTNAME"'=http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_CLUSTER_STATE="new"' /etc/etcd/etcd.conf
     systemctl enable etcd && systemctl start etcd
@@ -142,7 +147,7 @@ function_keystone()
 
     yum install openstack-keystone httpd mod_wsgi -y
 
-    sed -i '/^\[database\]/a\connection = mysql+pymysql://keystone:'"$PASSWORD"'@controller/keystone' /etc/keystone/keystone.conf
+    sed -i '/^\[database\]/a\connection = mysql+pymysql://keystone:'"$PASSWORD"'@'"$HOSTNAME"'/keystone' /etc/keystone/keystone.conf
     sed -i '/^\[token\]/a\provider = fernet' /etc/keystone/keystone.conf
 
     su -s /bin/sh -c "keystone-manage db_sync" keystone
@@ -150,25 +155,29 @@ function_keystone()
     keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
     keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
     keystone-manage bootstrap --bootstrap-password $PASSWORD \
-     --bootstrap-admin-url http://controller:5000/v3/ \
-     --bootstrap-internal-url http://controller:5000/v3/ \
-     --bootstrap-public-url http://controller:5000/v3/ \
+     --bootstrap-admin-url http://$HOSTNAME:5000/v3/ \
+     --bootstrap-internal-url http://$HOSTNAME:5000/v3/ \
+     --bootstrap-public-url http://$HOSTNAME:5000/v3/ \
      --bootstrap-region-id RegionOne
-
-    echo "ServerName controller" >> /etc/httpd/conf/httpd.conf
+    
+    sed -i '$a ServerName '"$HOSTNAME"'' /etc/httpd/conf/httpd.conf
+    #echo "ServerName controller" >> /etc/httpd/conf/httpd.conf
     ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/
     systemctl enable httpd.service && systemctl start httpd.service
 
     if [ -f /home/admin-openrc ]
         then
-          rm -rf /home/admin-openrc
+          sed -i '/^/,$d' /home/admin-openrc
+    else
+        touch /home/admin-openrc
     fi
     echo "export OS_USERNAME=admin" >> /home/admin-openrc
     sed -i '$a OS_PASSWORD='"$PASSWORD"''    /home/admin-openrc
     echo "export OS_PROJECT_NAME=admin" >> /home/admin-openrc
     echo "export OS_USER_DOMAIN_NAME=Default" >> /home/admin-openrc
     echo "export OS_PROJECT_DOMAIN_NAME=Default" >> /home/admin-openrc
-    echo "export OS_AUTH_URL=http://controller:5000/v3" >> /home/admin-openrc
+    #echo "export OS_AUTH_URL=http://controller:5000/v3" >> /home/admin-openrc
+    sed -i '$a export OS_AUTH_URL=http://'"$HOSTNAME"':5000/v3' /home/admin-openrc
     echo "export OS_IDENTITY_API_VERSION=3" >> /home/admin-openrc
     echo "export OS_IMAGE_API_VERSION=2"    >>/home/admin-openrc
     source /home/admin-openrc
@@ -188,13 +197,13 @@ function_glance()
     openstack user create --domain default --password $PASSWORD glance
     openstack role add --project service --user glance admin
     openstack service create --name glance --description "OpenStack Image" image
-    openstack endpoint create --region RegionOne image public http://controller:9292
-    openstack endpoint create --region RegionOne image internal http://controller:9292
-    openstack endpoint create --region RegionOne image admin http://controller:9292
+    openstack endpoint create --region RegionOne image public http://$HOSTNAME:9292
+    openstack endpoint create --region RegionOne image internal http://$HOSTNAME:9292
+    openstack endpoint create --region RegionOne image admin http://$HOSTNAME:9292
     yum install -y  openstack-glance
 
 #config glance-api.conf
-    sed -i '/^\[database\]/a\connection = mysql+pymysql://glance:'"$PASSWORD"'@controller/glance' /etc/glance/glance-api.conf
+    sed -i '/^\[database\]/a\connection = mysql+pymysql://glance:'"$PASSWORD"'@'"$HOSTNAME"'/glance' /etc/glance/glance-api.conf
 
     sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''      /etc/glance/glance-api.conf
     sed -i '/^\[keystone_authtoken\]/a\username = glance' /etc/glance/glance-api.conf
@@ -202,9 +211,9 @@ function_glance()
     sed -i '/^\[keystone_authtoken\]/a\user_domain_name = Default' /etc/glance/glance-api.conf
     sed -i '/^\[keystone_authtoken\]/a\project_domain_name = Default' /etc/glance/glance-api.conf
     sed -i '/^\[keystone_authtoken\]/a\auth_type = password' /etc/glance/glance-api.conf
-    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = controller:11211' /etc/glance/glance-api.conf
-    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://controller:5000' /etc/glance/glance-api.conf
-    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri  = http://controller:5000'    /etc/glance/glance-api.conf
+    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = '"$HOSTNAME"':11211' /etc/glance/glance-api.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$HOSTNAME"':5000' /etc/glance/glance-api.conf
+    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri  = http://'"$HOSTNAME"':5000'    /etc/glance/glance-api.conf
 
     sed -i '/^\[paste_deploy\]/a\flavor = keystone' /etc/glance/glance-api.conf
 
@@ -214,7 +223,7 @@ function_glance()
 
 
 #config glance-registry.conf
-    sed -i '/^\[database\]/a\connection = mysql+pymysql://glance:'"$PASSWORD"'@controller/glance' /etc/glance/glance-registry.conf
+    sed -i '/^\[database\]/a\connection = mysql+pymysql://glance:'"$PASSWORD"'@'"$HOSTNAME"'/glance' /etc/glance/glance-registry.conf
 
     sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''      /etc/glance/glance-registry.conf
     sed -i '/^\[keystone_authtoken\]/a\username = glance' /etc/glance/glance-registry.conf
@@ -222,9 +231,9 @@ function_glance()
     sed -i '/^\[keystone_authtoken\]/a\user_domain_name = Default' /etc/glance/glance-registry.conf
     sed -i '/^\[keystone_authtoken\]/a\project_domain_name = Default' /etc/glance/glance-registry.conf
     sed -i '/^\[keystone_authtoken\]/a\auth_type = password' /etc/glance/glance-registry.conf
-    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = controller:11211' /etc/glance/glance-registry.conf
-    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://controller:5000' /etc/glance/glance-registry.conf
-    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri  = http://controller:5000'    /etc/glance/glance-registry.conf
+    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = '"$HOSTNAME"':11211' /etc/glance/glance-registry.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$HOSTNAME"':5000' /etc/glance/glance-registry.conf
+    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri  = http://'"$HOSTNAME"':5000'    /etc/glance/glance-registry.conf
 
     sed -i '/^\[paste_deploy\]/a\flavor = keystone' /etc/glance/glance-registry.conf
 
@@ -261,9 +270,9 @@ function_nova()
     openstack service create --name nova  --description "OpenStack Compute" compute
 
 #endpoint create
-    openstack endpoint create --region RegionOne compute public http://controller:8774/v2.1
-    openstack endpoint create --region RegionOne compute internal http://controller:8774/v2.1
-    openstack endpoint create --region RegionOne compute admin http://controller:8774/v2.1
+    openstack endpoint create --region RegionOne compute public http://$HOSTNAME:8774/v2.1
+    openstack endpoint create --region RegionOne compute internal http://$HOSTNAME:8774/v2.1
+    openstack endpoint create --region RegionOne compute admin http://$HOSTNAME:8774/v2.1
 
 
     openstack user create --domain default --password $PASSWORD placement
@@ -271,9 +280,9 @@ function_nova()
 #placement endpoint create
 
     openstack service create --name placement --description "Placement API" placement
-    openstack endpoint create --region RegionOne placement public http://controller:8778
-    openstack endpoint create --region RegionOne placement internal http://controller:8778
-    openstack endpoint create --region RegionOne placement admin http://controller:8778
+    openstack endpoint create --region RegionOne placement public http://$HOSTNAME:8778
+    openstack endpoint create --region RegionOne placement internal http://$HOSTNAME:8778
+    openstack endpoint create --region RegionOne placement admin http://$HOSTNAME:8778
 
 #nova package install
     yum install -y openstack-nova-api openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy  openstack-nova-scheduler openstack-nova-placement-api
@@ -282,13 +291,13 @@ function_nova()
     sed -i '/^\[DEFAULT\]/a\firewall_driver = nova.virt.firewall.NoopFirewallDriver' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\use_neutron = true' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\my_ip = 192.168.29.145' /etc/nova/nova.conf
-    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@controller' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\enabled_apis = osapi_compute,metadata' /etc/nova/nova.conf
 
 
-    sed -i '/^\[api_database\]/a\connection = mysql+pymysql://nova:'"$PASSWORD"'@controller/nova_api' /etc/nova/nova.conf
-    sed -i '/^\[database\]/a\connection = mysql+pymysql://nova:'"$PASSWORD"'@controller/nova' /etc/nova/nova.conf
-    sed -i '/^\[placement_database\]/a\connection = mysql+pymysql://placement:'"$PASSWORD"'@controller/placement' /etc/nova/nova.conf
+    sed -i '/^\[api_database\]/a\connection = mysql+pymysql://nova:'"$PASSWORD"'@'"$HOSTNAME"'/nova_api' /etc/nova/nova.conf
+    sed -i '/^\[database\]/a\connection = mysql+pymysql://nova:'"$PASSWORD"'@'"$HOSTNAME"'/nova' /etc/nova/nova.conf
+    sed -i '/^\[placement_database\]/a\connection = mysql+pymysql://placement:'"$PASSWORD"'@'"$HOSTNAME"'/placement' /etc/nova/nova.conf
     sed -i '/^\[api\]/a\auth_strategy = keystone' /etc/nova/nova.conf
 #keystone authtoken
     sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''      /etc/nova/nova.conf
@@ -297,8 +306,8 @@ function_nova()
     sed -i '/^\[keystone_authtoken\]/a\user_domain_name = Default' /etc/nova/nova.conf
     sed -i '/^\[keystone_authtoken\]/a\project_domain_name = Default'  /etc/nova/nova.conf
     sed -i '/^\[keystone_authtoken\]/a\auth_type = password' /etc/nova/nova.conf
-    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = controller:11211' /etc/nova/nova.conf
-    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://controller:5000/v3'    /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = '"$HOSTNAME"':11211' /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$HOSTNAME"':5000/v3'    /etc/nova/nova.conf
 
 
 #vnc server
@@ -306,11 +315,11 @@ function_nova()
     sed -i '/^\[vnc\]/a\server_listen = $my_ip' /etc/nova/nova.conf
     sed -i '/^\[vnc\]/a\enabled = true' /etc/nova/nova.conf
 
-    sed -i '/^\[glance\]/a\api_servers = http://controller:9292' /etc/nova/nova.conf
+    sed -i '/^\[glance\]/a\api_servers = http://'"$HOSTNAME"':9292' /etc/nova/nova.conf
     sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/nova/tmp' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\password = '"$PASSWORD"'' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\username = placement' /etc/nova/nova.conf
-    sed -i '/^\[placement\]/a\auth_url = http://controller:5000/v3' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\auth_url = http://'"$HOSTNAME"':5000/v3' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\user_domain_name = Default' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\auth_type = password' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\project_name = service' /etc/nova/nova.conf
@@ -359,18 +368,18 @@ function_neutron()
     openstack service create --name neutron  --description "OpenStack Networking" network
 
 #endpoint set for neutron
-    openstack endpoint create --region RegionOne network public http://controller:9696
-    openstack endpoint create --region RegionOne network internal http://controller:9696
-    openstack endpoint create --region RegionOne network admin http://controller:9696
+    openstack endpoint create --region RegionOne network public http://$HOSTNAME:9696
+    openstack endpoint create --region RegionOne network internal http://$HOSTNAME:9696
+    openstack endpoint create --region RegionOne network admin http://$HOSTNAME:9696
 
     yum install -y openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch
 
 #neutron config file
-    sed -i '/^\[database\]/a\connection = mysql+pymysql://neutron:'"$PASSWORD"'@controller/neutron' /etc/neutron/neutron.conf
+    sed -i '/^\[database\]/a\connection = mysql+pymysql://neutron:'"$PASSWORD"'@'"$HOSTNAME"'/neutron' /etc/neutron/neutron.conf
     sed -i '/^\[DEFAULT\]/a\core_plugin = ml2' /etc/neutron/neutron.conf
     sed -i '/^core_plugin/a\service_plugins=router' /etc/neutron/neutron.conf
     sed -i '/^service_plugins/a\allow_overlapping_ips = true'  /etc/neutron/neutron.conf
-    sed -i '/^allow_overlapping_ips/a\transport_url = rabbit://openstack:'"$PASSWORD"'@controller' /etc/neutron/neutron.conf
+    sed -i '/^allow_overlapping_ips/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/neutron/neutron.conf
     sed -i '/^transport_url/a\auth_strategy = keystone' /etc/neutron/neutron.conf
     sed -i '/^auth_strategy/a\notify_nova_on_port_status_changes = true' /etc/neutron/neutron.conf
     sed -i '/^notify_nova_on_port_status_changes/a\notify_nova_on_port_data_changes = true' /etc/neutron/neutron.conf
@@ -382,9 +391,9 @@ function_neutron()
     sed -i '/^\[keystone_authtoken\]/a\user_domain_name = default' /etc/neutron/neutron.conf
     sed -i '/^\[keystone_authtoken\]/a\project_domain_name = default' /etc/neutron/neutron.conf
     sed -i '/^\[keystone_authtoken\]/a\auth_type = password' /etc/neutron/neutron.conf
-    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = controller:11211'          /etc/neutron/neutron.conf
-    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://controller:5000' /etc/neutron/neutron.conf
-    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri = http://controller:5000' /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = '"$HOSTNAME"':11211'          /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$HOSTNAME"':5000' /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri = http://'"$HOSTNAME"':5000' /etc/neutron/neutron.conf
 
 #set nova section in neutron.conf
     sed -i '/^\[nova\]/a\password = '"$PASSWORD"'' /etc/neutron/neutron.conf
@@ -394,7 +403,7 @@ function_neutron()
     sed -i '/^\[nova\]/a\user_domain_name = default' /etc/neutron/neutron.conf
     sed -i '/^\[nova\]/a\project_domain_name = default' /etc/neutron/neutron.conf
     sed -i '/^\[nova\]/a\auth_type = password' /etc/neutron/neutron.conf
-    sed -i '/^\[nova\]/a\auth_url = http://controller:5000' /etc/neutron/neutron.conf
+    sed -i '/^\[nova\]/a\auth_url = http://'"$HOSTNAME"':5000' /etc/neutron/neutron.conf
 
     sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/neutron/tmp' /etc/neutron/neutron.conf
 
@@ -427,7 +436,7 @@ function_neutron()
     sed -i '/^dhcp_driver/a\enable_isolated_metadata = True' /etc/neutron/dhcp_agent.ini
 
 #set metadata
-    sed -i '/^\[DEFAULT\]/a\nova_metadata_host = controller' /etc/neutron/metadata_agent.ini
+    sed -i '/^\[DEFAULT\]/a\nova_metadata_host = '"$HOSTNAME"'' /etc/neutron/metadata_agent.ini
     sed -i '/^nova_metadata_host/a\metadata_proxy_shared_secret = '"$PASSWORD"'' /etc/neutron/metadata_agent.ini
 
 #set neutron section in nova.conf
@@ -440,8 +449,8 @@ function_neutron()
     sed -i '/^\[neutron\]/a\user_domain_name = default' /etc/nova/nova.conf
     sed -i '/^\[neutron\]/a\project_domain_name = default' /etc/nova/nova.conf
     sed -i '/^\[neutron\]/a\auth_type = password' /etc/nova/nova.conf
-    sed -i '/^\[neutron\]/a\auth_url = http://controller:5000' /etc/nova/nova.conf
-    sed -i '/^\[neutron\]/a\url = http://controller:9696' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\auth_url = http://'"$HOSTNAME"':5000' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\url = http://'"$HOSTNAME"':9696' /etc/nova/nova.conf
 
     ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini
 
@@ -464,7 +473,7 @@ function_dashboard()
 #dashboard install
     yum install -y  openstack-dashboard
 
-    sed -i 's/^OPENSTACK_HOST.*/OPENSTACK_HOST = "controller"/' /etc/openstack-dashboard/local_settings
+    sed -i 's/^OPENSTACK_HOST.*/OPENSTACK_HOST = "'"$HOSTNAME"'"/' /etc/openstack-dashboard/local_settings
     sed -i "s/ALLOWED_HOSTS.*/ALLOWED_HOSTS = [\'*\']/" /etc/openstack-dashboard/local_settings
     sed -i "/^ALLOWED_HOSTS/a\SESSION_ENGINE = \'django.contrib.sessions.backends.cache\'" /etc/openstack-dashboard/local_settings
     sed -i '/^CACHES/,+5d' /etc/openstack-dashboard/local_settings
@@ -472,10 +481,11 @@ function_dashboard()
 CACHES = {
     'default': {
          'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-         'LOCATION': 'controller:11211',
-    }
-}
 EOF
+
+    sed -i   '$a        'LOCATION': '$HOSTNAME:11211','  /etc/openstack-dashboard/local_settings
+    echo "      }" >> /etc/openstack-dashboard/local_settings
+    echo "}"  >>/etc/openstack-dashboard/local_settings
 #
     sed -i 's/^#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT.*/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/' /etc/openstack-dashboard/local_settings
 
