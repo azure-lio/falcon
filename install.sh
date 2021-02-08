@@ -1,7 +1,7 @@
 #!/bin/bash
 #Basic enviroment set
 
-set -v
+set -x
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 if [ ! -f $TOP_DIR/config ]; then
     echo "config does not exit"
