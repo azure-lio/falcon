@@ -17,6 +17,11 @@ if [ -z "$SERVER_IP" ] ;then
     exit 0
 fi
 
+#local_ip used for vxlan local vtep
+if [ -z "$LOCAL_IP" ] ;then
+    echo "local ip missing"
+    exit 0
+fi
 HOSTNAME=${HOSTNAME:-controller}
 PASSWORD=${PASSWORD:-123456}
 MASK_LEN=${MASK_LEN:-24}
@@ -31,6 +36,8 @@ env_set()
 #echo $HOSTNAME
     if ! fgrep -qwe "$HOSTNAME" /etc/hosts; then
         sudo sed -i '$a '"$SERVER_IP"' '"$HOSTNAME"'' /etc/hosts
+        else
+        sed -i 's/^.*'"$HOSTNAME"'.*$/'"$SERVER_IP"' '"$HOSTNAME"'/' /etc/hosts
     fi
 
 #关闭防火墙
@@ -172,7 +179,7 @@ function_keystone()
         touch /home/admin-openrc
     fi
     echo "export OS_USERNAME=admin" >> /home/admin-openrc
-    sed -i '$a OS_PASSWORD='"$PASSWORD"''    /home/admin-openrc
+    sed -i '$a export OS_PASSWORD='"$PASSWORD"''    /home/admin-openrc
     echo "export OS_PROJECT_NAME=admin" >> /home/admin-openrc
     echo "export OS_USER_DOMAIN_NAME=Default" >> /home/admin-openrc
     echo "export OS_PROJECT_DOMAIN_NAME=Default" >> /home/admin-openrc
@@ -290,7 +297,7 @@ function_nova()
     #nova config
     sed -i '/^\[DEFAULT\]/a\firewall_driver = nova.virt.firewall.NoopFirewallDriver' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\use_neutron = true' /etc/nova/nova.conf
-    sed -i '/^\[DEFAULT\]/a\my_ip = 192.168.29.145' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\my_ip = '"$SERVER_IP"'' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\enabled_apis = osapi_compute,metadata' /etc/nova/nova.conf
 
@@ -419,7 +426,7 @@ function_neutron()
 
 #set ovs agent config
     sed -i '/^\[ovs\]/a\tunnel_bridge = br-tun' /etc/neutron/plugins/ml2/openvswitch_agent.ini
-    sed -i '/^tunnel_bridge/a\local_ip = 192.168.29.145' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sed -i '/^tunnel_bridge/a\local_ip = '"$LOCAL_IP"'' /etc/neutron/plugins/ml2/openvswitch_agent.ini
     sed -i '/^local_ip/a\integration_bridge = br-int' /etc/neutron/plugins/ml2/openvswitch_agent.ini
     sed -i '/^integration_bridge/a\enable_tunneling = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
     sed -i '/^\[agent\]/a\tunnel_types = vxlan' /etc/neutron/plugins/ml2/openvswitch_agent.ini
