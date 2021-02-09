@@ -490,7 +490,8 @@ CACHES = {
          'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
 EOF
 
-    sed -i   '$a        'LOCATION': '$HOSTNAME:11211','  /etc/openstack-dashboard/local_settings
+    #sed -i   '$a        'LOCATION': '$HOSTNAME:11211','  /etc/openstack-dashboard/local_settings
+    echo "    'LOCATION': '$HOSTNAME:11211'," >>/etc/openstack-dashboard/local_settings
     echo "      }" >> /etc/openstack-dashboard/local_settings
     echo "}"  >>/etc/openstack-dashboard/local_settings
 #
@@ -506,7 +507,7 @@ EOF
     sed -i 's/^#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN.*/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"/' /etc/openstack-dashboard/local_settings
     sed -i 's/^OPENSTACK_KEYSTONE_DEFAULT_ROLE.*/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/' /etc/openstack-dashboard/local_settings
 
-    sed -i '/$/a\WSGIApplicationGroup %{GLOBAL}' /etc/httpd/conf.d/openstack-dashboard.conf
+    sed -i '$a WSGIApplicationGroup %{GLOBAL}' /etc/httpd/conf.d/openstack-dashboard.conf
     systemctl restart httpd.service memcached.service
 
 }
