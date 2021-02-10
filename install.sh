@@ -12,16 +12,32 @@ fi
 source $TOP_DIR/config
 
 
+if [ $ALLINONE -eq 0 ] ; then
+    if [ -z "$SERVER_IP" ]; then
+       controller=1
+    else
+       compute=1
+    fi
+else
+    controller=1
+    compute=1   
+fi
+
 if [ -z "$SERVER_IP" ] ;then
-    echo "Server ip missing"
+    echo "Server ip not set"
+fi
+
+if [ -z "$HOST_IP" ] ;then
+    echo "Host ip not set,exit"
     exit 0
 fi
 
 #local_ip used for vxlan local vtep
 if [ -z "$LOCAL_IP" ] ;then
-    echo "local ip missing"
+    echo "local ip not set"
     exit 0
 fi
+
 HOSTNAME=${HOSTNAME:-controller}
 PASSWORD=${PASSWORD:-123456}
 MASK_LEN=${MASK_LEN:-24}
@@ -30,14 +46,26 @@ MASK_LEN=${MASK_LEN:-24}
 
 env_set()
 {
-
     hostnamectl set-hostname $HOSTNAME
     HOSTNAME=`hostname -s`
-#echo $HOSTNAME
+#Set $HOSTNAME
     if ! fgrep -qwe "$HOSTNAME" /etc/hosts; then
-        sudo sed -i '$a '"$SERVER_IP"' '"$HOSTNAME"'' /etc/hosts
+
+        sudo sed -i '$a '"$HOST_IP"' '"$HOSTNAME"'' /etc/hosts
+
+    else
+
+        sudo sed -i 's/^.*'"$HOSTNAME"'.*$/'"$HOST_IP"' '"$HOSTNAME"'/' /etc/hosts
+
+    fi
+#Set Controller in /etc/hosts for compute node
+    if [ $controller -eq 0 ] ; then
+         
+        if ! fgrep -qwe "$MASTERNAME" /etc/hosts; then
+            sudo sed -i '$a '"$SERVER_IP"' '"$MASTERNAME"'' /etc/hosts
         else
-        sed -i 's/^.*'"$HOSTNAME"'.*$/'"$SERVER_IP"' '"$HOSTNAME"'/' /etc/hosts
+            sudo sed -i 's/^.*'"$MASTERNAME"'.*$/'"$SERVER_IP"' '"$MASTERNAME"'/' /etc/hosts
+        fi
     fi
 
 #关闭防火墙
@@ -60,7 +88,11 @@ function_chrony()
 {
     yum install -y chrony
    # $a means add at last in file
-    sed -i '$a allow '"$SERVER_IP"'\/'"$MASK_LEN"'' /etc/chrony.conf
+    if [ $controller -eq 1 ] ; then
+       sed -i '$a allow '"$SERVER_IP"'\/'"$MASK_LEN"'' /etc/chrony.conf
+    else
+       sed -i '$a\server '"$MASTERNAME"' iburst' /etc/chrony.conf 
+    fi
     systemctl start chronyd.service && systemctl enable chronyd.service
 } 
 
@@ -83,7 +115,7 @@ function_mariadb()
     echo "[mysqld]" >>/etc/my.cnf.d/openstack.cnf
 
     #sed -i '$a\\[mysqld\]' /etc/my.cnf.d/openstack.cnf
-    sed -i '$a bind-address = '"$SERVER_IP"''  /etc/my.cnf.d/openstack.cnf
+    sed -i '$a bind-address = '"$HOST_IP"''  /etc/my.cnf.d/openstack.cnf
     sed -i '$a default-storage-engine = innodb'  /etc/my.cnf.d/openstack.cnf
     sed -i '$a innodb_file_per_table = on'  /etc/my.cnf.d/openstack.cnf
     sed -i '$a max_connections = 4096'  /etc/my.cnf.d/openstack.cnf
@@ -130,13 +162,13 @@ install_etcd()
     echo "#[Member]" > /etc/etcd/etcd.conf
 
     sed -i '$a  ETCD_DATA_DIR="/var/lib/etcd/default.etcd"' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_LISTEN_PEER_URLS="http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_LISTEN_CLIENT_URLS="http://'"$SERVER_IP"':2379"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_LISTEN_PEER_URLS="http://'"$HOST_IP"':2380"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_LISTEN_CLIENT_URLS="http://'"$HOST_IP"':2379"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_NAME="'"$HOSTNAME"'"' /etc/etcd/etcd.conf
     sed -i '$a  #[Clustering]' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_INITIAL_ADVERTISE_PEER_URLS="http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_ADVERTISE_CLIENT_URLS="http://'"$SERVER_IP"':2379"' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_INITIAL_CLUSTER="'"$HOSTNAME"'=http://'"$SERVER_IP"':2380"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_INITIAL_ADVERTISE_PEER_URLS="http://'"$SHOST_IP"':2380"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_ADVERTISE_CLIENT_URLS="http://'"$HOST_IP"':2379"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_INITIAL_CLUSTER="'"$HOSTNAME"'=http://'"$HOST_IP"':2380"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_CLUSTER_STATE="new"' /etc/etcd/etcd.conf
     systemctl enable etcd && systemctl start etcd
@@ -252,7 +284,7 @@ function_glance()
 
 }
 
-function_nova()
+function_nova_for_controller()
 {
 
 #nova install  install for controller node
@@ -297,7 +329,7 @@ function_nova()
     #nova config
     sed -i '/^\[DEFAULT\]/a\firewall_driver = nova.virt.firewall.NoopFirewallDriver' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\use_neutron = true' /etc/nova/nova.conf
-    sed -i '/^\[DEFAULT\]/a\my_ip = '"$SERVER_IP"'' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\my_ip = '"$HOST_IP"'' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\enabled_apis = osapi_compute,metadata' /etc/nova/nova.conf
 
@@ -361,7 +393,7 @@ EOF
       openstack-nova-conductor.service openstack-nova-novncproxy.service
 }
 
-function_neutron()
+function_neutron_for_controller()
 {
 
     #neutron install for control node
@@ -491,7 +523,7 @@ CACHES = {
 EOF
 
     #sed -i   '$a        'LOCATION': '$HOSTNAME:11211','  /etc/openstack-dashboard/local_settings
-    echo "    'LOCATION': '$HOSTNAME:11211'," >>/etc/openstack-dashboard/local_settings
+    echo "    'LOCATION': '$HOSTNAME:11211',"  >> /etc/openstack-dashboard/local_settings
     echo "      }" >> /etc/openstack-dashboard/local_settings
     echo "}"  >>/etc/openstack-dashboard/local_settings
 #
@@ -502,7 +534,7 @@ OPENSTACK_API_VERSIONS = {
         "identity": 3,
         "image": 2,
         "volume": 2,
-    }  
+        }  
 EOF
     sed -i 's/^#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN.*/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"/' /etc/openstack-dashboard/local_settings
     sed -i 's/^OPENSTACK_KEYSTONE_DEFAULT_ROLE.*/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/' /etc/openstack-dashboard/local_settings
@@ -512,20 +544,138 @@ EOF
 
 }
 
+#install function for compute node
+
+install_nova_for_compute()
+{
+#nova compute install
+yum install -y openstack-nova-compute
+
+#configure nova.conf
+
+if [ $controller -eq 0 ] ; then
+    sed -i '/^\[DEFAULT\]/a\firewall_driver = nova.virt.firewall.NoopFirewallDriver' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\use_neutron = true' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\my_ip = '"$HOST_IP"'' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:smart@'"$MASTERNAME"'' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\enabled_apis = osapi_compute,metadata' /etc/nova/nova.conf
+    sed -i '/^\[api\]/a\auth_strategy = keystone' /etc/nova/nova.conf
+
+    sed -i '/^\[keystone_authtoken\]/a\password = smart'   /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\username = nova'   /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\project_name = service'  /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\user_domain_name = Default'   /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\project_domain_name = Default'   /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_type = password'  /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = '"$MASTERNAME"':11211'  /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$MASTERNAME"':5000/v3'  /etc/nova/nova.conf
+
+#vnc section set
+
+    sed -i '/^\[vnc\]/a\server_proxyclient_address = $my_ip' /etc/nova/nova.conf
+    sed -i '/^\[vnc\]/a\server_listen = 0.0.0.0' /etc/nova/nova.conf
+    sed -i '/^\[vnc\]/a\enabled = true' /etc/nova/nova.conf
+    #glance section set
+
+    sed -i '/^\[glance\]/a\api_servers = http://'"$MASTERNAME"':9292' /etc/nova/nova.conf
+    sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/nova/tmp' /etc/nova/nova.conf
+
+    #placement section
+    sed -i '/^\[placement\]/a\password = smart' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\username = placement' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\auth_url = http://'"$MASTERNAME"':5000/v3' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\user_domain_name = Default' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\auth_type = password' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\project_name = service' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\project_domain_name = Default' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\region_name = RegionOne' /etc/nova/nova.conf
+fi
+
+sed -i '/^\[vnc\]/a\novncproxy_base_url = http://'"$SERVER_IP"':6080/vnc_auto.html' /etc/nova/nova.conf
+
+
+}
+
+
+install_neutron_for_compute()
+{
+#neutron install in compute node
+
+yum install -y openstack-neutron-openvswitch ebtables ipset
+#When install ALLINONE ,all these has been set while install controll modules
+if [ $controller -eq 0 ] ; then
+
+    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$MASTERNAME"'' /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\auth_strategy = keystone'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\username = neutron'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\project_name = service'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\user_domain_name = default'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\project_domain_name = default'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_type = password'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\memcached_servers = '"$MASTERNAME"':11211'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$MASTERNAME"':5000'  /etc/neutron/neutron.conf
+    sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri = http://'"$MASTERNAME"':5000'  /etc/neutron/neutron.conf
+    sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/neutron/tmp'  /etc/neutron/neutron.conf
+fi
+#set ovs agent config
+
+sed -i '/^\[ovs\]/a\tunnel_bridge = br-tun' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^tunnel_bridge/a\local_ip = '"$LOCAL_IP"'' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^local_ip/a\integration_bridge = br-int' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^integration_bridge/a\enable_tunneling = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^\[agent\]/a\tunnel_types = vxlan' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^tunnel_types/a\l2_population = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^\[securitygroup\]/a\firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+sed -i '/^firewall_driver/a\enable_security_group = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+
+#set neutron section in nova.conf
+if [ $controller -eq 0 ] ; then
+    sed -i '/^\[neutron\]/a\password = '"$PASSWORD"'' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\username = neutron' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\project_name = service' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\region_name = RegionOne' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\user_domain_name = default' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\project_domain_name = default' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\auth_type = password' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\auth_url = http://'"$MASTERNAME"':5000' /etc/nova/nova.conf
+    sed -i '/^\[neutron\]/a\url = http://'"$MASTERNAME"':9696' /etc/nova/nova.conf
+fi
+#service start
+systemctl restart openstack-nova-compute.service
+systemctl enable  neutron-openvswitch-agent.service
+systemctl start  neutron-openvswitch-agent.service
+
+}
+
 
 function_main()
 {
     env_set
     function_chrony
     function_rocky
-    function_mariadb
-    install_memcache
-    install_etcd
-    function_keystone
-    function_glance
-    function_nova
-    function_neutron
-    function_dashboard
+#First install controller ,then check whether need to install compute
+    if [ $controller -eq 1 ] ; then
+        function_mariadb
+        install_memcache
+        install_etcd
+        function_keystone
+        function_glance
+        function_nova_for_controller
+        function_neutron_for_controller 
+        function_dashboard
+    fi
+#IF in allinone mode ,we install control modules before this
+
+    if [ $compute -eq 1 ] ; then
+        install_nova_for_compute
+        install_neutron_for_compute
+    fi
+    
+    echo "Your dashborad address:http://$host_ip/dashboard/"
+    echo "Doamin:Default"
+    echo "User name:admin"
+    echo "Password:$PASSWORD"
 }
 
 #call main
