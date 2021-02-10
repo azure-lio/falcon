@@ -166,7 +166,7 @@ install_etcd()
     sed -i '$a  ETCD_LISTEN_CLIENT_URLS="http://'"$HOST_IP"':2379"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_NAME="'"$HOSTNAME"'"' /etc/etcd/etcd.conf
     sed -i '$a  #[Clustering]' /etc/etcd/etcd.conf
-    sed -i '$a  ETCD_INITIAL_ADVERTISE_PEER_URLS="http://'"$SHOST_IP"':2380"' /etc/etcd/etcd.conf
+    sed -i '$a  ETCD_INITIAL_ADVERTISE_PEER_URLS="http://'"$HOST_IP"':2380"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_ADVERTISE_CLIENT_URLS="http://'"$HOST_IP"':2379"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_CLUSTER="'"$HOSTNAME"'=http://'"$HOST_IP"':2380"' /etc/etcd/etcd.conf
     sed -i '$a  ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"' /etc/etcd/etcd.conf
