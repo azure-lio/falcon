@@ -592,6 +592,14 @@ if [ $controller -eq 0 ] ; then
 fi
 
 sed -i '/^\[vnc\]/a\novncproxy_base_url = http://'"$SERVER_IP"':6080/vnc_auto.html' /etc/nova/nova.conf
+cpunum=`egrep -c '(vmx|svm)' /proc/cpuinfo`
+if [ $cpunum -eq 0 ]
+    then
+    sed -i '/^\[libvirt\]/a\virt_type = qemu' /etc/nova/nova.conf
+fi
+
+systemctl enable libvirtd.service openstack-nova-compute.service
+systemctl start libvirtd.service openstack-nova-compute.service
 
 
 }
