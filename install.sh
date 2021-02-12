@@ -681,7 +681,7 @@ function_main()
         install_neutron_for_compute
     fi
     
-    echo "Your dashborad address:http://$host_ip/dashboard/"
+    echo "Your dashborad address:http://$HOST_IP/dashboard/"
     echo "Doamin:Default"
     echo "User name:admin"
     echo "Password:$PASSWORD"
