@@ -148,7 +148,7 @@ install_memcache()
 {
     #memcache install
     yum install -y  memcached python-memcached
-    sed -i "s/-l 127.0.0.1,::1/-l 127.0.0.1,::1,'"$HOSTNAME"'/g" /etc/sysconfig/memcached
+    sed -i 's/-l 127.0.0.1,::1/-l 127.0.0.1,::1,'"$HOSTNAME"'/g' /etc/sysconfig/memcached
     systemctl enable memcached.service && systemctl start memcached.service
 }
 
@@ -666,6 +666,7 @@ function_main()
     if [ $controller -eq 1 ] ; then
         function_mariadb
         install_memcache
+        install_rabbitmq
         install_etcd
         function_keystone
         function_glance
