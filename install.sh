@@ -350,7 +350,7 @@ function_nova_for_controller()
 
 
 #vnc server
-    sed -i '/^\[vnc\]/a\server_listen/a\server_proxyclient_address = $my_ip' /etc/nova/nova.conf
+    sed -i '/^\[vnc\]/a\server_proxyclient_address = $my_ip' /etc/nova/nova.conf
     sed -i '/^\[vnc\]/a\server_listen = $my_ip' /etc/nova/nova.conf
     sed -i '/^\[vnc\]/a\enabled = true' /etc/nova/nova.conf
 
