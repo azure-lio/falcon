@@ -15,7 +15,9 @@ source $TOP_DIR/config
 if [ $ALLINONE -eq 0 ] ; then
     if [ -z "$SERVER_IP" ]; then
        controller=1
+       computer=0
     else
+      controller=1
        compute=1
     fi
 else
@@ -673,6 +675,11 @@ function_main()
         function_nova_for_controller
         function_neutron_for_controller 
         function_dashboard
+        echo "=====Install Successfully  within a control node====="
+        echo "Your dashborad address:http://$HOST_IP/dashboard/"
+        echo "Doamin:Default"
+        echo "User name:admin"
+        echo "Password:$PASSWORD"
     fi
 #IF in allinone mode ,we install control modules before this
 
@@ -681,10 +688,7 @@ function_main()
         install_neutron_for_compute
     fi
     
-    echo "Your dashborad address:http://$HOST_IP/dashboard/"
-    echo "Doamin:Default"
-    echo "User name:admin"
-    echo "Password:$PASSWORD"
+
 }
 
 #call main
