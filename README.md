@@ -3,11 +3,11 @@
 * install.sh to install opentack rocky for centos7.6
 * 支持最小化安装centos 7.6的openstack rocky版本
 * 配置文件config中需要预先设置好环境变量的值    
-mastername 代表的是控制节点，对应的名称是需要设置的主机名称  
+MASTERNAME 代表的是控制节点，对应的名称是需要设置的主机名称  
 * MASTERNAME=controller  
 hostname 代表的是当前节点名称，如果是计算和控制合一则名称与master相同即可
 * HOSTNAME=controller  
-allinone支持在一个节点同时安装控制和计算服务，此时hostname和mastername是一样的。如果allinone为0，代表分开部署，计算节点必须设置mastername和server_ip。
+ALLINONE支持在一个节点同时安装控制和计算服务，此时hostname和mastername是一样的。如果ALLINONE为0，代表分开部署，计算节点必须设置mastername和server_ip。
 * ALLINONE=1  
 本安装所有密码采用最简化的统一设置，如果不输入password，则默认是采用的123456
 * PASSWORD=smart  
