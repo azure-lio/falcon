@@ -17,7 +17,7 @@ if [ $ALLINONE -eq 0 ] ; then
        controller=1
        computer=0
     else
-      controller=1
+       controller=0
        compute=1
     fi
 else
