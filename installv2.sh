@@ -27,11 +27,11 @@ function_main()
 {
     
     env_set
-    function_chrony
-    function_openstack_pkg
+    install_chrony
+    install_openstack_pkg
 #First install controller ,then check whether need to install compute
     if [ $controller -eq 1 ] ; then
-        function_mariadb
+        install_mariadb
         install_memcache
         install_rabbitmq
         install_etcd
