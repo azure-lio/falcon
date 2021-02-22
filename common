@@ -1,0 +1,104 @@
+#!/bin/bash
+
+declare -g os_VENDOR os_RELEASE os_PACKAGE os_CODENAME
+
+ # Make a *best effort* attempt to install lsb_release packages for the
+ # user if not available.  Note can't use generic install_package*
+ # because they depend on this!
+ function _ensure_lsb_release {
+     if [[ -x $(command -v lsb_release 2>/dev/null) ]]; then
+         return
+     fi
+
+     if [[ -x $(command -v apt-get 2>/dev/null) ]]; then
+         sudo apt-get install -y lsb-release
+     elif [[ -x $(command -v yum 2>/dev/null) ]]; then
+         sudo yum install -y redhat-lsb-core
+     else
+         die $LINENO "Unable to find or auto-install lsb_release"
+     fi
+ }
+
+ # GetOSVersion
+ #  Set the following variables:
+ #  - os_RELEASE
+ #  - os_CODENAME
+ #  - os_VENDOR
+ #  - os_PACKAGE
+function GetOSVersion {
+     # We only support distros that provide a sane lsb_release
+     _ensure_lsb_release
+
+     os_RELEASE=$(lsb_release -r -s)
+     os_CODENAME=$(lsb_release -c -s)
+     os_VENDOR=$(lsb_release -i -s)
+
+     if [[ $os_VENDOR =~ (Debian|Ubuntu|LinuxMint) ]]; then
+         os_PACKAGE="deb"
+     else
+         os_PACKAGE="rpm"
+     fi
+
+     typeset -xr os_VENDOR
+     typeset -xr os_RELEASE
+     typeset -xr os_PACKAGE
+     typeset -xr os_CODENAME
+ }
+
+
+declare -g HOSTNAME PASSWORD MASK_LEN MASTERNAME HOST_IP LOCAL_IP
+
+init_lib_common()
+{
+TOP_DIR=$(cd $(dirname "$0") && pwd)
+if [ ! -f $TOP_DIR/config ]; then
+    echo "config does not exit"
+    exit 0
+fi
+
+
+source $TOP_DIR/config
+
+if [ $ALLINONE -eq 0 ] ; then
+    if [ -z "$SERVER_IP" ]; then
+       controller=1
+       computer=0
+    else
+       controller=0
+       compute=1
+    fi
+else
+    controller=1
+    compute=1   
+fi
+
+if [ -z "$SERVER_IP" ] ;then
+    echo "Server ip not set"
+fi
+
+if [ -z "$HOST_IP" ] ;then
+    echo "Host ip not set,exit"
+    exit 0
+fi
+
+#local_ip used for vxlan local vtep
+if [ -z "$LOCAL_IP" ] ;then
+    echo "local ip not set"
+    exit 0
+fi
+
+HOSTNAME=${HOSTNAME:-controller}
+PASSWORD=${PASSWORD:-123456}
+MASK_LEN=${MASK_LEN:-24}
+
+typeset -xr HOSTNAME
+typeset -xr PASSWORD
+typeset -xr MASK_LEN
+typeset -xr MASTERNAME
+typeset -xr HOST_IP
+typeset -xr LOCAL_IP
+typeset -xr computer
+typeset -xr controller
+}
+
+

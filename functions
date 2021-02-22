@@ -1,0 +1,105 @@
+#!/bin/bash
+
+LIB_DIR=$(cd $(dirname "$0") && pwd)
+
+echo "lib directory " $LIB_DIR
+
+source ${LIB_DIR}/lib-centos7
+
+#source ${LIB_DIR}/lib-centos8
+#source ${LIB_DIR}/lib-ubuntu16
+
+env_set()
+{
+    hostnamectl set-hostname $HOSTNAME
+    HOSTNAME=`hostname -s`
+#Set $HOSTNAME
+    if ! fgrep -qwe "$HOSTNAME" /etc/hosts; then
+
+        sudo sed -i '$a '"$HOST_IP"' '"$HOSTNAME"'' /etc/hosts
+
+    else
+
+        sudo sed -i 's/^.*'"$HOSTNAME"'.*$/'"$HOST_IP"' '"$HOSTNAME"'/' /etc/hosts
+
+    fi
+#Set Controller in /etc/hosts for compute node
+    if [ $controller -eq 0 ] ; then
+         
+        if ! fgrep -qwe "$MASTERNAME" /etc/hosts; then
+            sudo sed -i '$a '"$SERVER_IP"' '"$MASTERNAME"'' /etc/hosts
+        else
+            sudo sed -i 's/^.*'"$MASTERNAME"'.*$/'"$SERVER_IP"' '"$MASTERNAME"'/' /etc/hosts
+        fi
+    fi
+#centos7 firewall stop
+    cent7_env
+
+}
+
+
+
+function_chrony()
+{
+   centos7_chrony
+} 
+
+function_openstack_pkg()
+{
+    function_centos7_rocky
+}
+
+function_mariadb()
+{
+   function_centos7_mariadb
+}
+
+install_rabbitmq()
+{
+   centos7_install_rabbitmq
+}
+install_memcache()
+{
+  centos7_install_memcache
+}
+
+
+install_etcd()
+{
+    centos7_install_etcd
+}
+
+install_keystone()
+{
+    function_centos7_keystone
+}
+
+install_glance()
+{
+    function_centos7_glance
+}
+
+install_controller_nova()
+{
+    function_centos7_nova_for_controller
+}
+
+install_controller_neutron()
+{
+    function_centos7_neutron_for_controller
+}
+install_dashboard()
+{
+    function_centos7_dashboard
+}
+
+install_compute_nova()
+{
+    install_centos7_nova_for_compute
+}
+
+install_compute_neutron()
+{
+    install_centos7_neutron_for_compute
+}
+
