@@ -39,17 +39,17 @@ env_set()
 
 
 
-function_chrony()
+install_chrony()
 {
    centos7_chrony
 } 
 
-function_openstack_pkg()
+install_openstack_pkg()
 {
     function_centos7_rocky
 }
 
-function_mariadb()
+install_mariadb()
 {
    function_centos7_mariadb
 }
