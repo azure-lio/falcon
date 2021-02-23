@@ -52,8 +52,14 @@ function_main()
         install_compute_nova
         install_compute_neutron
     fi
-    
-
+#notify the state of installation    
+    if [ $controller -eq 1 ] ; then
+        echo "=====Install Successfully  within a control node====="
+        echo "Your dashborad address:http://$HOST_IP/dashboard/"
+        echo "Doamin:Default"
+        echo "User name:admin"
+        echo "Password:$PASSWORD"
+    fi
 }
 
 #call main
