@@ -294,8 +294,8 @@ function_centos8_nova_for_controller()
     sed -i '/^\[placement\]/a\project_domain_name = Default' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\region_name = RegionOne' /etc/nova/nova.conf
     sed -i '/^\[scheduler\]/a\discover_hosts_in_cells_interval = 300'  /etc/nova/nova.conf
-    sed -i '/$/a\\n' /etc/httpd/conf.d/00-nova-placement-api.conf
-    tee -a /etc/httpd/conf.d/00-nova-placement-api.conf <<-'EOF'
+    sed -i '/$/a\\n' /etc/httpd/conf.d/00-placement-api.conf
+    tee -a /etc/httpd/conf.d/00-placement-api.conf <<-'EOF'
 <Directory /usr/bin>
        <IfVersion >= 2.4>
           Require all granted
