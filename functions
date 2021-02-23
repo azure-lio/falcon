@@ -25,7 +25,7 @@ env_set()
     fi
 #Set Controller in /etc/hosts for compute node
     if [ $controller -eq 0 ] ; then
-         
+
         if ! fgrep -qwe "$MASTERNAME" /etc/hosts; then
             sudo sed -i '$a '"$SERVER_IP"' '"$MASTERNAME"'' /etc/hosts
         else
@@ -33,73 +33,167 @@ env_set()
         fi
     fi
 #centos7 firewall stop
-    cent7_env
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack Rocky on centos7"
+       cent7_env
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack U On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack Queen on Ubutun16"
+   fi
 
 }
 
-
-
 install_chrony()
 {
-   centos7_chrony
-} 
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack Chrony on centos7"
+       centos7_chrony
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack U On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack Queen on Ubutun16"
+   fi
+}
 
 install_openstack_pkg()
 {
-    function_centos7_rocky
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack pkg on centos7"
+       function_centos7_rocky
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack pkg On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack pkg on Ubutun16"
+   fi
 }
 
 install_mariadb()
 {
-   function_centos7_mariadb
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install maridb on centos7"
+       function_centos7_mariadb
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack maridb On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack maridb on Ubutun16"
+   fi
 }
 
 install_rabbitmq()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install rabbitmq  on centos7"
    centos7_install_rabbitmq
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install rabbitmq  On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install rabbitmq  on Ubutun16"
+   fi
 }
 install_memcache()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install memcache  on centos7"
   centos7_install_memcache
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install memcache On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install memcache  on Ubutun16"
+   fi
 }
 
 
 install_etcd()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install etcd on centos7"
     centos7_install_etcd
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install etcd On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install etcd on Ubutun16"
+   fi
 }
 
 install_keystone()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack keystone on centos7"
     function_centos7_keystone
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack keystone On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack keystone on Ubutun16"
+   fi
 }
-
 install_glance()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack glance on centos7"
     function_centos7_glance
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack glance On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack glance on Ubutun16"
+   fi
 }
 
 install_controller_nova()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack nova on centos7"
     function_centos7_nova_for_controller
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack nova On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack nova on Ubutun16"
+   fi
 }
 
 install_controller_neutron()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack neutron on centos7"
     function_centos7_neutron_for_controller
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack neutron On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack neutron on Ubutun16"
+   fi
 }
 install_dashboard()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack dashboard on centos7"
     function_centos7_dashboard
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack dashboard On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack dashboard on Ubutun16"
+   fi
 }
 
 install_compute_nova()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack nova-compute on centos7"
     install_centos7_nova_for_compute
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack nova-compute On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack nova-compute on Ubutun16"
+   fi
 }
 
 install_compute_neutron()
 {
+   if [ $is_cent7 -eq 1 ]  ;then
+       echo "Install openstack compute-neutron on centos7"
     install_centos7_neutron_for_compute
+   elif [ $is_cent8 -eq 1 ] ; then
+       echo "Install openstack compute-neutron On centos8"
+   elif [ $is_ub16 -eq 1 ] ; then
+       echo "Install Openstack compute-neutron on Ubutun16"
+   fi
 }
-
