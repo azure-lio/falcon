@@ -2,6 +2,7 @@
 ub16_env()
 {
 #set kernel bridge
+    modprobe br_netfilter
     echo "net.bridge.bridge-nf-call-iptables=1" >> /etc/sysctl.conf
     echo "net.bridge.bridge-nf-call-ip6tables=1" >> /etc/sysctl.conf
 }
