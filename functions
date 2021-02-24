@@ -43,11 +43,13 @@ install_netfilter()
        echo "Install openstack Rocky on centos7"
        cent7_env
    elif [[ $is_cent8 -eq 1 ]] ; then
-       cent8_env
        echo "Install openstack U On centos8"
+       cent8_env
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-       ub16_env
        echo "Install Openstack Queen on Ubuntu16"
+       ub16_env
+       
    fi
 }
 
@@ -58,25 +60,29 @@ install_chrony()
        echo "Install openstack Chrony on centos7"
        centos7_chrony
    elif [[ $is_cent8 -eq 1 ]] ; then
+      echo "Install openstack  ussuri On centos8"
        centos8_chrony
-       echo "Install openstack U On centos8"
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
+      echo "Install Openstack Queen on Ubuntu16"
        ub16_chrony
-       echo "Install Openstack Queen on Ubuntu16"
+       
    fi
 }
 
 install_openstack_pkg()
 {
    if [[ $is_cent7 -eq 1 ]]  ;then
-       echo "Install openstack pkg on centos7"
+       echo "Install openstack Rocky on centos7"
        function_centos7_rocky
    elif [[ $is_cent8 -eq 1 ]] ; then
+     echo "Install openstack Ussuri On centos8"
        function_centos8_ussuri
-       echo "Install openstack pkg On centos8"
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
+      echo "Install Openstack QUEENs on Ubuntu16"
        function_ub16_queen
-       echo "Install Openstack pkg on Ubuntu16"
+       
    fi
 }
 
@@ -86,11 +92,13 @@ install_mariadb()
        echo "Install maridb on centos7"
        function_centos7_mariadb
    elif [[ $is_cent8 -eq 1 ]] ; then
-       function_centos8_mariadb
        echo "Install openstack maridb On centos8"
+       function_centos8_mariadb
+       
    elif [[ $is_ub16 -eq 1 ]] ; then
+        echo "Install Openstack maridb on Ubuntu16"
        function_ub16_mariadb
-       echo "Install Openstack maridb on Ubuntu16"
+      
    fi
 }
 
@@ -100,11 +108,13 @@ install_rabbitmq()
        echo "Install rabbitmq  on centos7"
        centos7_install_rabbitmq
    elif [[ $is_cent8 -eq 1 ]] ; then
-       centos8_install_rabbitmq
        echo "Install rabbitmq  On centos8"
+       centos8_install_rabbitmq
+       
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_rabbitmq
        echo "Install rabbitmq  on Ubuntu16"
+       function_ub16_rabbitmq
+      
    fi
 }
 install_memcache()
@@ -113,11 +123,13 @@ install_memcache()
        echo "Install memcache  on centos7"
       centos7_install_memcache
    elif [[ $is_cent8 -eq 1 ]] ; then
-       centos8_install_memcache
        echo "Install memcache On centos8"
+       centos8_install_memcache
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_memcache
        echo "Install memcache  on Ubuntu16"
+       function_ub16_memcache
+      
    fi
 }
 
@@ -128,11 +140,13 @@ install_etcd()
        echo "Install etcd on centos7"
        centos7_install_etcd
    elif [[ $is_cent8 -eq 1 ]] ; then
-       centos8_install_etcd
        echo "Install etcd On centos8"
+       centos8_install_etcd
+       
    elif [[ $is_ub16 -eq 1 ]] ; then
+        echo "Install etcd on Ubuntu16"
        function_ub16_etcd
-       echo "Install etcd on Ubuntu16"
+      
    fi
 }
 
@@ -142,11 +156,13 @@ install_keystone()
        echo "Install openstack keystone on centos7"
        function_centos7_keystone
    elif [[ $is_cent8 -eq 1 ]] ; then
+        echo "Install openstack keystone On centos8.3"
        function_centos8_keystone
-       echo "Install openstack keystone On centos8"
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_keystone
        echo "Install Openstack keystone on Ubuntu16"
+       function_ub16_keystone
+      
    fi
 }
 
@@ -156,11 +172,13 @@ install_glance()
        echo "Install openstack glance on centos7"
         function_centos7_glance
    elif [[ $is_cent8 -eq 1 ]] ; then
+        echo "Install openstack glance On centos8"
        function_centos8_glance
-       echo "Install openstack glance On centos8"
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_glance
        echo "Install Openstack glance on Ubuntu16"
+       function_ub16_glance
+      
    fi
 }
 
@@ -176,13 +194,15 @@ install_controller_nova()
 {
    if [[ $is_cent7 -eq 1 ]]  ;then
        echo "Install openstack nova on centos7"
-    function_centos7_nova_for_controller
+       function_centos7_nova_for_controller
    elif [[ $is_cent8 -eq 1 ]] ; then
-    function_centos8_nova_for_controller
        echo "Install openstack nova On centos8"
+       function_centos8_nova_for_controller
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-    function_ub16_nova_for_controller
        echo "Install Openstack nova on Ubuntu16"
+       function_ub16_nova_for_controller
+       
    fi
 }
 
@@ -192,11 +212,13 @@ install_controller_neutron()
        echo "Install openstack neutron on centos7"
        function_centos7_neutron_for_controller
    elif [[ $is_cent8 -eq 1 ]] ; then
-       function_centos8_neutron_for_controller
        echo "Install openstack neutron On centos8"
+       function_centos8_neutron_for_controller
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
+        echo "Install Openstack neutron on Ubuntu16"
        function_ub16_neutron_for_controller
-       echo "Install Openstack neutron on Ubuntu16"
+      
    fi
 }
 
@@ -206,11 +228,13 @@ install_dashboard()
        echo "Install openstack dashboard on centos7"
        function_centos7_dashboard
    elif [[ $is_cent8 -eq 1 ]] ; then
-       function_centos8_dashboard
        echo "Install openstack dashboard On centos8"
+       function_centos8_dashboard
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_dashboard
        echo "Install Openstack dashboard on Ubuntu16"
+       function_ub16_dashboard
+      
    fi
 }
 
@@ -220,11 +244,13 @@ install_compute_nova()
        echo "Install openstack nova-compute on centos7"
        install_centos7_nova_for_compute
    elif [[ $is_cent8 -eq 1 ]] ; then
-       install_centos8_nova_for_compute
        echo "Install openstack nova-compute On centos8"
+       install_centos8_nova_for_compute
+      
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_nova_for_compute
        echo "Install Openstack nova-compute on Ubuntu16"
+       function_ub16_nova_for_compute
+      
    fi
 }
 
@@ -232,12 +258,14 @@ install_compute_neutron()
 {
    if [[ $is_cent7 -eq 1 ]]  ;then
        echo "Install openstack compute-neutron on centos7"
-    install_centos7_neutron_for_compute
+       install_centos7_neutron_for_compute
    elif [[ $is_cent8 -eq 1 ]] ; then
-      install_centos8_neutron_for_compute
        echo "Install openstack compute-neutron On centos8"
+       install_centos8_neutron_for_compute
+       
    elif [[ $is_ub16 -eq 1 ]] ; then
-       function_ub16_neutron_for_compute
        echo "Install Openstack compute-neutron on Ubuntu16"
+       function_ub16_neutron_for_compute
+      
    fi
 }
