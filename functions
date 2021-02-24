@@ -7,7 +7,7 @@ echo "lib directory " $LIB_DIR
 source ${LIB_DIR}/lib-centos7
 
 source ${LIB_DIR}/lib-centos8
-#source ${LIB_DIR}/lib-ubuntu16
+source ${LIB_DIR}/lib-ubuntu16
 
 env_set()
 {
@@ -40,7 +40,8 @@ env_set()
        cent8_env
        echo "Install openstack U On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack Queen on Ubutun16"
+       ub16_env
+       echo "Install Openstack Queen on Ubuntu16"
    fi
 
 }
@@ -54,7 +55,8 @@ install_chrony()
        centos8_chrony
        echo "Install openstack U On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack Queen on Ubutun16"
+       ub16_chrony
+       echo "Install Openstack Queen on Ubuntu16"
    fi
 }
 
@@ -67,7 +69,8 @@ install_openstack_pkg()
        function_centos8_ussuri
        echo "Install openstack pkg On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack pkg on Ubutun16"
+       function_ub16_queen
+       echo "Install Openstack pkg on Ubuntu16"
    fi
 }
 
@@ -80,7 +83,8 @@ install_mariadb()
        function_centos8_mariadb
        echo "Install openstack maridb On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack maridb on Ubutun16"
+       function_ub16_mariadb
+       echo "Install Openstack maridb on Ubuntu16"
    fi
 }
 
@@ -93,7 +97,8 @@ install_rabbitmq()
        centos8_install_rabbitmq
        echo "Install rabbitmq  On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install rabbitmq  on Ubutun16"
+       function_ub16_rabbitmq
+       echo "Install rabbitmq  on Ubuntu16"
    fi
 }
 install_memcache()
@@ -105,7 +110,8 @@ install_memcache()
        centos8_install_memcache
        echo "Install memcache On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install memcache  on Ubutun16"
+       function_ub16_memcache
+       echo "Install memcache  on Ubuntu16"
    fi
 }
 
@@ -119,7 +125,8 @@ install_etcd()
        centos8_install_etcd
        echo "Install etcd On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install etcd on Ubutun16"
+       function_ub16_etcd
+       echo "Install etcd on Ubuntu16"
    fi
 }
 
@@ -132,7 +139,8 @@ install_keystone()
        function_centos8_keystone
        echo "Install openstack keystone On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack keystone on Ubutun16"
+       function_ub16_keystone
+       echo "Install Openstack keystone on Ubuntu16"
    fi
 }
 
@@ -145,7 +153,8 @@ install_glance()
        function_centos8_glance
        echo "Install openstack glance On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack glance on Ubutun16"
+       function_ub16_glance
+       echo "Install Openstack glance on Ubuntu16"
    fi
 }
 
@@ -166,7 +175,8 @@ install_controller_nova()
     function_centos8_nova_for_controller
        echo "Install openstack nova On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack nova on Ubutun16"
+    function_ub16_nova_for_controller
+       echo "Install Openstack nova on Ubuntu16"
    fi
 }
 
@@ -179,7 +189,8 @@ install_controller_neutron()
        function_centos8_neutron_for_controller
        echo "Install openstack neutron On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack neutron on Ubutun16"
+       function_ub16_neutron_for_controller
+       echo "Install Openstack neutron on Ubuntu16"
    fi
 }
 
@@ -192,7 +203,8 @@ install_dashboard()
        function_centos8_dashboard
        echo "Install openstack dashboard On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack dashboard on Ubutun16"
+       function_ub16_dashboard
+       echo "Install Openstack dashboard on Ubuntu16"
    fi
 }
 
@@ -205,7 +217,8 @@ install_compute_nova()
        install_centos8_nova_for_compute
        echo "Install openstack nova-compute On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack nova-compute on Ubutun16"
+       function_ub16_nova_for_compute
+       echo "Install Openstack nova-compute on Ubuntu16"
    fi
 }
 
@@ -218,6 +231,7 @@ install_compute_neutron()
       install_centos8_neutron_for_compute
        echo "Install openstack compute-neutron On centos8"
    elif [ $is_ub16 -eq 1 ] ; then
-       echo "Install Openstack compute-neutron on Ubutun16"
+       function_ub16_neutron_for_compute
+       echo "Install Openstack compute-neutron on Ubuntu16"
    fi
 }
