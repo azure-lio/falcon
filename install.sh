@@ -7,7 +7,7 @@ TOP_DIR=$(cd $(dirname "$0") && pwd)
 source $TOP_DIR/common
 GetOSVersion
 
-declare -g is_cent is_cent8 is_ub16
+declare -g is_cent7 is_cent8 is_ub16
 if [[ "$os_VENDOR" =~ (Ubuntu)  ]]; then
          echo "OS vendor is Ubutu" $os_RELEASE
          main_num=`echo $os_RELEASE | awk -F '.' '{print $1}'`
