@@ -65,7 +65,8 @@ function_ub16_memcache()
 {
   #memcache install
     apt install -y memcached python-memcache
-    sed -i 's/-l 127.0.0.1,::1/-l 127.0.0.1,::1,'"$HOSTNAME"'/g' /etc/memcached.conf
+    #sed -i 's/-l 127.0.0.1,::1/-l 127.0.0.1,::1,'"$HOSTNAME"'/g' /etc/memcached.conf
+    sed -i 's/-l 127.0.0.1/-l 127.0.0.1,'"$HOSTNAME"'/g' /etc/memcached.conf
     service memcached restart
 }
 
@@ -73,7 +74,8 @@ function_ub16_etcd()
 {
     apt install -y etcd
     sed -i '/^/,$d' /etc/default/etcd
-
+    #需写入一行，sed方可继续追加
+    echo "#[Member]" > /etc/default/etcd
     sed -i '$a  ETCD_DATA_DIR="/var/lib/etcd/default.etcd"' /etc/default/etcd
     sed -i '$a  ETCD_LISTEN_PEER_URLS="http://'"$HOST_IP"':2380"' /etc/default/etcd
     sed -i '$a  ETCD_LISTEN_CLIENT_URLS="http://'"$HOST_IP"':2379"' /etc/default/etcd
