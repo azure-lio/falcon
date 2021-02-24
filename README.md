@@ -1,6 +1,7 @@
 # falcon
-* 极简化，minimal 的openstack R版本安装脚本。控制节点和计算节点分别下载 install.sh,单独执行，执行之前先配置config文件，其中包含的是安装过程中用到的环境变量的值。先安装控制节点，然后再按安装计算节点。
-* install.sh to install opentack rocky for centos7.6
+#最小化openstack 安装，minimal 的支持在centos7.6 的openstack R版本安装脚本，ubutun16.04进行queens的安装，centos8.3进行U版本的安装。
+>控制节点和计算节点分别下载 install.sh,单独执行，执行之前先配置config文件，其中包含的是安装过程中用到的环境变量的值。先安装控制节点，然后再按安装计算节点。
+* install.sh 安装脚本，chmod +x修改为可执行，结合config文件的参数配置进行openstack相应的版本的安装。
 * 支持最小化安装centos 7.6的openstack rocky版本
 * 配置文件config中需要预先设置好环境变量的值    
 MASTERNAME 代表的是控制节点，对应的名称是需要设置的主机名称  
