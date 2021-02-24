@@ -39,13 +39,13 @@ install_netfilter()
 {
 
 #centos7 firewall stop
-   if [ $is_cent7 -eq 1 ]  ;then
+   if [[ $is_cent7 -eq 1 ]]  ;then
        echo "Install openstack Rocky on centos7"
        cent7_env
-   elif [ $is_cent8 -eq 1 ] ; then
+   elif [[ $is_cent8 -eq 1 ]] ; then
        cent8_env
        echo "Install openstack U On centos8"
-   elif [ $is_ub16 -eq 1 ] ; then
+   elif [[ $is_ub16 -eq 1 ]] ; then
        ub16_env
        echo "Install Openstack Queen on Ubuntu16"
    fi
