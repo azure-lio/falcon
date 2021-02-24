@@ -53,6 +53,7 @@ function_main()
         install_etcd
         install_keystone
         install_glance
+        install_placement
         install_controller_nova
         install_controller_neutron
         install_dashboard
