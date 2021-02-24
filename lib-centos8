@@ -471,8 +471,8 @@ EOF
     echo "      }" >> /etc/openstack-dashboard/local_settings
     echo "}"  >>/etc/openstack-dashboard/local_settings
 #
-    sed -i 's/^#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT.*/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/' /etc/openstack-dashboard/local_settings
-
+    #sed -i 's/^#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT.*/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/' /etc/openstack-dashboard/local_settings
+    echo 'OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True' >> /etc/openstack-dashboard/local_settings
     tee >> /etc/openstack-dashboard/local_settings <<-'EOF'
 OPENSTACK_API_VERSIONS = {
         "identity": 3,
@@ -480,9 +480,11 @@ OPENSTACK_API_VERSIONS = {
         "volume": 2,
         }  
 EOF
-    sed -i 's/^#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN.*/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"/' /etc/openstack-dashboard/local_settings
-    sed -i 's/^OPENSTACK_KEYSTONE_DEFAULT_ROLE.*/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/' /etc/openstack-dashboard/local_settings
-
+    #sed -i 's/^#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN.*/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"/' /etc/openstack-dashboard/local_settings
+    #sed -i 's/^OPENSTACK_KEYSTONE_DEFAULT_ROLE.*/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/' /etc/openstack-dashboard/local_settings
+    echo 'OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"' >> /etc/openstack-dashboard/local_settings
+    echo 'OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"' >> /etc/openstack-dashboard/local_settings
+    echo "WEBROOT = '/dashboard/'" >> /etc/openstack-dashboard/local_settings
     sed -i '$a WSGIApplicationGroup %{GLOBAL}' /etc/httpd/conf.d/openstack-dashboard.conf
     systemctl restart httpd.service memcached.service
 
@@ -598,5 +600,3 @@ systemctl enable  neutron-openvswitch-agent.service
 systemctl start  neutron-openvswitch-agent.service
 
 }
-
-
