@@ -406,32 +406,32 @@ function_ub16_dashboard()
 {
 #dashboard install
     apt install -y openstack-dashboard
-    sed -i 's/^OPENSTACK_HOST.*/OPENSTACK_HOST = "'"$HOSTNAME"'"/' /etc/openstack-dashboard/local_settings
-    sed -i "s/ALLOWED_HOSTS.*/ALLOWED_HOSTS = [\'*\']/" /etc/openstack-dashboard/local_settings
-    sed -i "/^ALLOWED_HOSTS/a\SESSION_ENGINE = \'django.contrib.sessions.backends.cache\'" /etc/openstack-dashboard/local_settings
-    sed -i '/^CACHES/,+5d' /etc/openstack-dashboard/local_settings
-    tee >> /etc/openstack-dashboard/local_settings <<-'EOF'
+    sed -i 's/^OPENSTACK_HOST.*/OPENSTACK_HOST = "'"$HOSTNAME"'"/' /etc/openstack-dashboard/local_settings.py
+    sed -i "s/ALLOWED_HOSTS.*/ALLOWED_HOSTS = [\'*\']/" /etc/openstack-dashboard/local_settings.py
+    sed -i "/^ALLOWED_HOSTS/a\SESSION_ENGINE = \'django.contrib.sessions.backends.cache\'" /etc/openstack-dashboard/local_settings.py
+    sed -i '/^CACHES/,+5d' /etc/openstack-dashboard/local_settings.py
+    tee >> /etc/openstack-dashboard/local_settings.py <<-'EOF'
 CACHES = {
     'default': {
          'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
 EOF
 
-    #sed -i   '$a        'LOCATION': '$HOSTNAME:11211','  /etc/openstack-dashboard/local_settings
-    echo "    'LOCATION': '$HOSTNAME:11211',"  >> /etc/openstack-dashboard/local_settings
-    echo "      }" >> /etc/openstack-dashboard/local_settings
-    echo "}"  >>/etc/openstack-dashboard/local_settings
+    #sed -i   '$a        'LOCATION': '$HOSTNAME:11211','  /etc/openstack-dashboard/local_settings.py
+    echo "    'LOCATION': '$HOSTNAME:11211',"  >> /etc/openstack-dashboard/local_settings.py
+    echo "      }" >> /etc/openstack-dashboard/local_settings.py
+    echo "}"  >>/etc/openstack-dashboard/local_settings.py
 #
-    sed -i 's/^#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT.*/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/' /etc/openstack-dashboard/local_settings
+    sed -i 's/^#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT.*/OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True/' /etc/openstack-dashboard/local_settings.py
 
-    tee >> /etc/openstack-dashboard/local_settings <<-'EOF'
+    tee >> /etc/openstack-dashboard/local_settings.py <<-'EOF'
 OPENSTACK_API_VERSIONS = {
         "identity": 3,
         "image": 2,
         "volume": 2,
         }  
 EOF
-    sed -i 's/^#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN.*/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"/' /etc/openstack-dashboard/local_settings
-    sed -i 's/^OPENSTACK_KEYSTONE_DEFAULT_ROLE.*/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/' /etc/openstack-dashboard/local_settings
+    sed -i 's/^#OPENSTACK_KEYSTONE_DEFAULT_DOMAIN.*/OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"/' /etc/openstack-dashboard/local_settings.py
+    sed -i 's/^OPENSTACK_KEYSTONE_DEFAULT_ROLE.*/OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"/' /etc/openstack-dashboard/local_settings.py
 
     sed -i '$a WSGIApplicationGroup %{GLOBAL}' /etc/apache2/conf-available/openstack-dashboard.conf
     service apache2 reload
