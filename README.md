@@ -7,11 +7,11 @@ MASTERNAME 代表的是控制节点，对应的名称是需要设置的主机名
 * MASTERNAME=controller  
 hostname 代表的是当前节点名称，如果是计算和控制合一则名称与master相同即可
 * HOSTNAME=controller  
-ALLINONE支持在一个节点同时安装控制和计算服务，此时hostname和mastername是一样的。如果ALLINONE为0，代表分开部署，计算节点必须设置mastername和server_ip。
+ALLINONE支持在一个节点同时安装控制网络和计算服务，此时hostname和mastername是一样的。如果ALLINONE为0，代表分开部署，计算节点必须设置mastername和server_ip，控制节点不设置server_ip。
 * ALLINONE=1  
 本安装所有密码采用最简化的统一设置，如果不输入password，则默认是采用的123456
 * PASSWORD=smart  
-SERVER_IP在计算节点安装时必须提供，用来设置计算节点与控制节点通信，server-ip是控制节点管理通道的地址
+SERVER_IP在计算节点安装时必须提供，如果节点只作为控制和网络节点，该地址不可填写。server-ip是控制节点管理通道的地址，其他计算节点使用该地址与主控节点通信。
 * SERVER_IP=192.168.168.106  
 local_ip用来作为最小化安装支持的租户类型是vxlan时的数据通信接口地址，也就是vxlan的端点地址。该地址可以与管理通道配置相同也可以单独一个数据通道
 * LOCAL_IP=192.168.168.106  
