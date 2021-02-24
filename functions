@@ -33,7 +33,7 @@ env_set()
         fi
     fi
 #centos7 firewall stop
-   if [[ $is_cent7 -eq 1 ][  ;then
+   if [[ $is_cent7 -eq 1 ]]  ;then
        echo "Install openstack Rocky on centos7"
        cent7_env
    elif [[ $is_cent8 -eq 1 ]] ; then
