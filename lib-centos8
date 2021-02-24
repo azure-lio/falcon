@@ -501,11 +501,11 @@ yum install -y openstack-nova-compute
 
 if [ $controller -eq 0 ] ; then
     sed -i '/^\[DEFAULT\]/a\my_ip = '"$HOST_IP"'' /etc/nova/nova.conf
-    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:smart@'"$MASTERNAME"'' /etc/nova/nova.conf
+    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$MASTERNAME"'' /etc/nova/nova.conf
     sed -i '/^\[DEFAULT\]/a\enabled_apis = osapi_compute,metadata' /etc/nova/nova.conf
     sed -i '/^\[api\]/a\auth_strategy = keystone' /etc/nova/nova.conf
 
-    sed -i '/^\[keystone_authtoken\]/a\password = smart'   /etc/nova/nova.conf
+    sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''   /etc/nova/nova.conf
     sed -i '/^\[keystone_authtoken\]/a\username = nova'   /etc/nova/nova.conf
     sed -i '/^\[keystone_authtoken\]/a\project_name = service'  /etc/nova/nova.conf
     sed -i '/^\[keystone_authtoken\]/a\user_domain_name = Default'   /etc/nova/nova.conf
@@ -525,7 +525,7 @@ if [ $controller -eq 0 ] ; then
     sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/nova/tmp' /etc/nova/nova.conf
 
     #placement section
-    sed -i '/^\[placement\]/a\password = smart' /etc/nova/nova.conf
+    sed -i '/^\[placement\]/a\password = '"$PASSWORD"'' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\username = placement' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\auth_url = http://'"$MASTERNAME"':5000/v3' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\user_domain_name = Default' /etc/nova/nova.conf
