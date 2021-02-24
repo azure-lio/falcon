@@ -55,6 +55,7 @@ function_main()
         install_glance
         install_placement
         install_controller_nova
+        install_netfilter
         install_controller_neutron
         install_dashboard
         echo "=====Install Successfully  within a control node====="
