@@ -314,12 +314,12 @@ function_ub16_neutron_for_controller()
     sed -i '/^connection/d' /etc/neutron/neutron.conf
     sed -i '/^\[database\]/a\connection = mysql+pymysql://neutron:'"$PASSWORD"'@'"$HOSTNAME"'/neutron' /etc/neutron/neutron.conf
     sed -i '/^\[DEFAULT\]/a\core_plugin = ml2' /etc/neutron/neutron.conf
-    sed -i '/^core_plugin/a\service_plugins=router' /etc/neutron/neutron.conf
-    sed -i '/^service_plugins/a\allow_overlapping_ips = true'  /etc/neutron/neutron.conf
-    sed -i '/^allow_overlapping_ips/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/neutron/neutron.conf
-    sed -i '/^transport_url/a\auth_strategy = keystone' /etc/neutron/neutron.conf
-    sed -i '/^auth_strategy/a\notify_nova_on_port_status_changes = true' /etc/neutron/neutron.conf
-    sed -i '/^notify_nova_on_port_status_changes/a\notify_nova_on_port_data_changes = true' /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\service_plugins=router' /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\allow_overlapping_ips = true'  /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\auth_strategy = keystone' /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\notify_nova_on_port_status_changes = true' /etc/neutron/neutron.conf
+    sed -i '/^\[DEFAULT\]/a\notify_nova_on_port_data_changes = true' /etc/neutron/neutron.conf
 
 #keysstone_auth for neutron
     sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"'' /etc/neutron/neutron.conf
