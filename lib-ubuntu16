@@ -14,6 +14,7 @@ function ub16_chrony()
     if [ $controller -eq 1 ] ; then
        sed -i '$a allow '"$SERVER_IP"'\/'"$MASK_LEN"'' /etc/chrony/chrony.conf
     else
+       sed -i '/^pool.*/d' /etc/chrony/chrony.conf
        sed -i '$a\server '"$MASTERNAME"' iburst' /etc/chrony/chrony.conf
     fi
     service chrony restart
