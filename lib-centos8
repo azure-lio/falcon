@@ -569,7 +569,6 @@ if [ $controller -eq 0 ] ; then
     sed -i '/^\[keystone_authtoken\]/a\auth_url = http://'"$MASTERNAME"':5000'  /etc/neutron/neutron.conf
     sed -i '/^\[keystone_authtoken\]/a\www_authenticate_uri = http://'"$MASTERNAME"':5000'  /etc/neutron/neutron.conf
     sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/neutron/tmp'  /etc/neutron/neutron.conf
-fi
 #set ovs agent config
 echo  "[ovs]" >>  /etc/neutron/plugins/ml2/openvswitch_agent.ini
 sed -i '/^\[ovs\]/a\tunnel_bridge = br-tun' /etc/neutron/plugins/ml2/openvswitch_agent.ini
@@ -584,7 +583,6 @@ sed -i '/^\[securitygroup\]/a\firewall_driver = neutron.agent.linux.iptables_fir
 sed -i '/^firewall_driver/a\enable_security_group = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
 
 #set neutron section in nova.conf
-if [ $controller -eq 0 ] ; then
     sed -i '/^\[neutron\]/a\password = '"$PASSWORD"'' /etc/nova/nova.conf
     sed -i '/^\[neutron\]/a\username = neutron' /etc/nova/nova.conf
     sed -i '/^\[neutron\]/a\project_name = service' /etc/nova/nova.conf
