@@ -98,7 +98,8 @@ function_ub16_keystone()
     mysql -u$USERNAME -p$PASSWORD -e "GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${PASSWORD}'"
 
     apt install -y keystone  apache2 libapache2-mod-wsgi
-
+    sed -i '/^connection/d' /etc/keystone/keystone.conf
+    sed -i '/^backend/d'  /etc/keystone/keystone.conf
     sed -i '/^\[database\]/a\connection = mysql+pymysql://keystone:'"$PASSWORD"'@'"$HOSTNAME"'/keystone' /etc/keystone/keystone.conf
     sed -i '/^\[token\]/a\provider = fernet' /etc/keystone/keystone.conf
 
@@ -153,6 +154,8 @@ function_ub16_glance()
     apt install -y glance
 
 #config glance-api.conf
+    sed -i '/^connection/d' /etc/glance/glance-api.conf
+    sed -i '/^backend/d'    /etc/glance/glance-api.conf
     sed -i '/^\[database\]/a\connection = mysql+pymysql://glance:'"$PASSWORD"'@'"$HOSTNAME"'/glance' /etc/glance/glance-api.conf
 
     sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''      /etc/glance/glance-api.conf
@@ -173,6 +176,8 @@ function_ub16_glance()
 
 
 #config glance-registry.conf
+    sed -i '/^connection/d' /etc/glance/glance-registry.conf
+    sed -i '/^backend/d'  /etc/glance/glance-registry.conf
     sed -i '/^\[database\]/a\connection = mysql+pymysql://glance:'"$PASSWORD"'@'"$HOSTNAME"'/glance' /etc/glance/glance-registry.conf
 
     sed -i '/^\[keystone_authtoken\]/a\password = '"$PASSWORD"''      /etc/glance/glance-registry.conf
@@ -242,7 +247,7 @@ function_ub16_nova_for_controller()
     sed -i '/^\[DEFAULT\]/a\transport_url = rabbit://openstack:'"$PASSWORD"'@'"$HOSTNAME"'' /etc/nova/nova.conf
     sed -i '/^log_dir/d' /etc/nova/nova.conf
 
-
+    sed -i '/^connection/d'  /etc/nova/nova.conf
     sed -i '/^\[api_database\]/a\connection = mysql+pymysql://nova:'"$PASSWORD"'@'"$HOSTNAME"'/nova_api' /etc/nova/nova.conf
     sed -i '/^\[database\]/a\connection = mysql+pymysql://nova:'"$PASSWORD"'@'"$HOSTNAME"'/nova' /etc/nova/nova.conf
     #sed -i '/^\[placement_database\]/a\connection = mysql+pymysql://placement:'"$PASSWORD"'@'"$HOSTNAME"'/placement' /etc/nova/nova.conf
@@ -518,17 +523,17 @@ if [ $controller -eq 0 ] ; then
     sed -i '/^\[keystone_authtoken\]/a\auth_uri = http://'"$MASTERNAME"':5000'  /etc/neutron/neutron.conf
     sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/neutron/tmp'  /etc/neutron/neutron.conf
     
+fi
     #set ovs agent config
 
     sed -i '/^\[ovs\]/a\tunnel_bridge = br-tun' /etc/neutron/plugins/ml2/openvswitch_agent.ini
-    sed -i '/^tunnel_bridge/a\local_ip = '"$LOCAL_IP"'' /etc/neutron/plugins/ml2/openvswitch_agent.ini
-    sed -i '/^local_ip/a\integration_bridge = br-int' /etc/neutron/plugins/ml2/openvswitch_agent.ini
-    sed -i '/^integration_bridge/a\enable_tunneling = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sed -i '/^\[ovs\]/a\local_ip = '"$LOCAL_IP"'' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sed -i '/^\[ovs\]/a\integration_bridge = br-int' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sed -i '/^\[ovs\]/a\enable_tunneling = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
     sed -i '/^\[agent\]/a\tunnel_types = vxlan' /etc/neutron/plugins/ml2/openvswitch_agent.ini
-    sed -i '/^tunnel_types/a\l2_population = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sed -i '/^\[agent\]/a\l2_population = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
     sed -i '/^\[securitygroup\]/a\firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver' /etc/neutron/plugins/ml2/openvswitch_agent.ini
     sed -i '/^firewall_driver/a\enable_security_group = True' /etc/neutron/plugins/ml2/openvswitch_agent.ini
-fi
 
 
 #set neutron section in nova.conf
