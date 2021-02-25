@@ -73,7 +73,11 @@ function_main()
 #notify the state of installation
     if [ $controller -eq 1 ] ; then
         echo "=====Install Successfully  within a control node====="
-        echo "Your dashborad address:http://$HOST_IP/dashboard/"
+        if [[ $is_ub16 -eq 1]] ; then
+            echo "Your dashborad address:http://$HOST_IP/horizon/"
+        else
+             echo "Your dashborad address:http://$HOST_IP/dashboard/"
+        fi
         echo "Doamin:Default"
         echo "User name:admin"
         echo "Password:$PASSWORD"
