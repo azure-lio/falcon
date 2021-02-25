@@ -310,7 +310,7 @@ function_ub16_neutron_for_controller()
       neutron-metadata-agent
 
 #neutron config file
-    sed -i '/^\[database\]/a\connection = mysql+pymysql://neutron:'"$PASSWORD"'@'"$HOSTNAME"'/neutron' /etc/neutron/neutron.conf
+    sed -i 's/^connection.*/connection = mysql+pymysql://neutron:'"$PASSWORD"'@'"$HOSTNAME"'/neutron' /etc/neutron/neutron.conf
     sed -i '/^\[DEFAULT\]/a\core_plugin = ml2' /etc/neutron/neutron.conf
     sed -i '/^core_plugin/a\service_plugins=router' /etc/neutron/neutron.conf
     sed -i '/^service_plugins/a\allow_overlapping_ips = true'  /etc/neutron/neutron.conf
