@@ -43,8 +43,8 @@ function_main()
 {
 
     env_set
-    install_chrony
     install_openstack_pkg
+    install_chrony
 #First install controller ,then check whether need to install compute
     if [ $controller -eq 1 ] ; then
         install_mariadb
