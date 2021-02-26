@@ -28,14 +28,8 @@ env_set()
         echo " $key ${SIBLINGS[$key]}"
         sed -i '$a '"${SIBLINGS[$key]}"' '"$key"'' /etc/hosts
     done
-
-}
-
-
-install_netfilter()
-{
-
-#centos7 firewall stop
+    
+    #centos7 firewall stop
    if [[ $is_cent7 -eq 1 ]]  ;then
        echo "Install openstack Rocky on centos7"
        cent7_env
@@ -43,7 +37,15 @@ install_netfilter()
        echo "Install openstack U On centos8"
        cent8_env
       
-   elif [[ $is_ub16 -eq 1 ]] ; then
+   fi
+
+}
+
+
+install_netfilter()
+{
+
+   if [[ $is_ub16 -eq 1 ]] ; then
        echo "Install Openstack Queen on Ubuntu16"
        ub16_env
        
