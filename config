@@ -1,3 +1,4 @@
+declare -A compute
 MASTERNAME=controller
 HOSTNAME=controller
 ALLINONE=1
@@ -5,3 +6,5 @@ PASSWORD=smart
 SERVER_IP=192.168.168.106
 LOCAL_IP=192.168.168.106
 HOST_IP=192.168.168.106
+compute=([computer1]="192.168.29.129")
+
