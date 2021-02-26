@@ -114,6 +114,7 @@ if [ $is_cent7 -eq 1 ]  ;then
        remove_for_centos7
 elif [ $is_cent8 -eq 1 ] ; then
        echo "Remove  openstack pkg On centos8"
+       remove_for_centos8
 elif [ $is_ub16 -eq 1 ] ; then
        echo "Remove  Openstack pkg on Ubutun16"
 fi
