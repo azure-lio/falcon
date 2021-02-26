@@ -6,5 +6,6 @@ PASSWORD=smart
 SERVER_IP=192.168.168.106
 LOCAL_IP=192.168.168.106
 HOST_IP=192.168.168.106
-compute=([computer1]="192.168.29.129")
+compute=([node1]="10.0.0.1" [node2]="10.0.0.2" [node3]="10.0.0.3")
+
 
