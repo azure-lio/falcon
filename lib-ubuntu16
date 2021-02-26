@@ -484,6 +484,7 @@ if [ $controller -eq 0 ] ; then
     sed -i '/^\[oslo_concurrency\]/a\lock_path = /var/lib/nova/tmp' /etc/nova/nova.conf
 
     #placement section
+    sed -i '/^os_region_name/d' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\password = '"$PASSWORD"'' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\username = placement' /etc/nova/nova.conf
     sed -i '/^\[placement\]/a\auth_url = http://'"$MASTERNAME"':5000/v3' /etc/nova/nova.conf
