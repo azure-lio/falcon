@@ -78,6 +78,48 @@ function remove_for_centos8()
 
 }
 
+
+function remove_for_ubutun()
+{
+    apt remove chrony -y
+
+    apt remove -y  openstack-dashboard
+
+
+    apt remove  -y neutron-server neutron-plugin-ml2 \
+     neutron-openvswitch-agent neutron-l3-agent neutron-dhcp-agent \
+     neutron-metadata-agent
+
+    sudo rm -rf /etc/neutron/neutron.conf
+    sudo rm -rf /etc/neutron/plugins/ml2/ml2_conf.ini
+    sudo rm -rf /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sudo rm -rf /etc/neutron/l3_agent.ini
+    sudo rm -rf /etc/neutron/dhcp_agent.ini
+    sudo rm -rf /etc/neutron/metadata_agent.ini
+    
+    apt remove -y nova-api nova-conductor nova-consoleauth \
+      nova-novncproxy nova-scheduler nova-placement-api nova-compute
+    sudo rm -rf /etc/nova/nova.conf
+    
+    apt remove  -y  glance
+    sudo rm -rf /etc/glance/glance-api.conf
+    sudo rm -rf /etc/glance/glance-registry.conf
+    
+    apt remove -y keystone  apache2 libapache2-mod-wsgi
+    sudo rm -rf /etc/keystone/keystone.conf
+    sudo rm -rf /home/admin-openrc
+    
+
+    apt remove -y python-openstackclient
+
+    apt remove -y mariadb-server python-pymysql
+    dpkg -l |grep ^rc|awk '{print $2}' |sudo xargs dpkg -P
+    
+    apt remove -y memcached python-memcache
+    apt remove -y rabbitmq-server
+
+}
+
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 source $TOP_DIR/common
 GetOSVersion
@@ -117,6 +159,7 @@ elif [ $is_cent8 -eq 1 ] ; then
        remove_for_centos8
 elif [ $is_ub16 -eq 1 ] ; then
        echo "Remove  Openstack pkg on Ubutun16"
+       remove_for_ubutun
 fi
 
 
