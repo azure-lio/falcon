@@ -24,9 +24,9 @@ env_set()
 
     fi
 #Set other nodes in /etc/hosts
-    for key in  ${!compute[*]}; do
-        echo " $key ${compute[$key]}"
-        sed -i '$a '"${compute[$key]}"'    '"$key"'' /etc/hosts
+    for key in  ${!SIBLINGS[*]}; do
+        echo " $key ${SIBLINGS[$key]}"
+        sed -i '$a '"${SIBLINGS[$key]}"'    '"$key"'' /etc/hosts
     done
 
 }
