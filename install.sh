@@ -7,6 +7,7 @@ TOP_DIR=$(cd $(dirname "$0") && pwd)
 source $TOP_DIR/common
 GetOSVersion
 
+declare -A SIBLINGS
 declare -g is_cent7 is_cent8 is_ub16
 if [[ "$os_VENDOR" =~ (Ubuntu)  ]]; then
          echo "OS vendor is Ubutu" $os_RELEASE
