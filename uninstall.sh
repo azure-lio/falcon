@@ -36,6 +36,48 @@ function remove_for_centos7()
     yum remove -y  memcached python-memcached
 }
 
+function remove_for_centos8()
+{
+    yum remove chrony -y
+
+    yum remove -y  openstack-dashboard
+    rm -rf /etc/openstack-dashboard
+    rm -rf /etc/httpd/conf.d/openstack-dashboard.conf
+
+    yum remove  -y openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch
+    yum remove -y  ebtables ipset
+
+    sudo rm -rf /etc/neutron/neutron.conf
+    sudo rm -rf /etc/neutron/plugins/ml2/ml2_conf.ini
+    sudo rm -rf /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    sudo rm -rf /etc/neutron/l3_agent.ini
+    sudo rm -rf /etc/neutron/dhcp_agent.ini
+    sudo rm -rf /etc/neutron/metadata_agent.ini
+    yum remove  -y openstack-nova-api openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy  openstack-nova-scheduler openstack-nova-placement-api
+    yum remove -y openstack-nova-compute
+    sudo rm -rf /etc/nova/nova.conf
+    yum remove  -y  openstack-glance
+    sudo rm -rf /etc/glance/glance-api.conf
+    sudo rm -rf /etc/glance/glance-registry.conf
+    yum remove -y  openstack-keystone httpd python3-mod_wsgi
+    sudo rm -rf /etc/keystone/keystone.conf
+    sed -i '/\[mysqld\]/,+7d' /etc/my.cnf.d/openstack.cnf
+
+    yum remove -y openstack-placement-api
+    sudo rm -rf /etc/placement/placement.conf
+    
+
+    yum remove -y centos-release-openstack-ussuri
+
+    yum remove -y  python3-openstackclient
+    yum remove  -y mariadb mariadb-server python2-PyMySQL
+    sudo rm -rf /var/lib/mysql
+    sudo rm -rf /var/lib64/mysql
+    yum remove -y  memcached python3-memcached
+    yum remove -y rabbitmq-server
+
+}
+
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 source $TOP_DIR/common
 GetOSVersion
