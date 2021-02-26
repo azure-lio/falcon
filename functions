@@ -23,15 +23,12 @@ env_set()
         sudo sed -i 's/^.*'"$HOSTNAME"'.*$/'"$HOST_IP"' '"$HOSTNAME"'/' /etc/hosts
 
     fi
-#Set Controller in /etc/hosts for compute node
-    if [[ $controller -eq 0 ]] ; then
+#Set other nodes in /etc/hosts
+    for key in  ${!compute[*]}; do
+        echo " $key ${compute[$key]}"
+        sed -i '$a '"${compute[$key]}"'    '"$key"'' /etc/hosts
+    done
 
-        if ! fgrep -qwe "$MASTERNAME" /etc/hosts; then
-            sudo sed -i '$a '"$SERVER_IP"' '"$MASTERNAME"'' /etc/hosts
-        else
-            sudo sed -i 's/^.*'"$MASTERNAME"'.*$/'"$SERVER_IP"' '"$MASTERNAME"'/' /etc/hosts
-        fi
-    fi
 }
 
 
