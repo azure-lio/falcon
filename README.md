@@ -1,5 +1,5 @@
 # falcon
-## 最小化openstack 安装，支持centos7.6 openstack R版本，ubutun16.04 queens的安装，centos8.3 Ussuri版本的安装。
+## 最小化openstack 基于包安装，非源码方式。支持centos7.6 openstack R版本，ubutun16.04 queens的安装，centos8.3 Ussuri版本的安装。
 >控制节点和计算节点分别下载或直接git clone。修改config文件，然后执行install.sh 。安装顺序：先安装控制节点，然后再按安装计算节点。
 * install.sh 安装脚本，chmod +x修改为可执行，结合config文件的参数配置进行openstack相应的版本的安装，uninstall.sh用于卸载，慎重使用，会删除数据库清理依赖的包。
 * 配置文件config中需要预先设置好环境变量的值，=和前后变量间不留空格。   
