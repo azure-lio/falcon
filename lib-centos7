@@ -21,7 +21,7 @@ function centos7_chrony()
    yum install -y chrony
    # $a means add at last in file
     if [ $controller -eq 1 ] ; then
-       sed -i '$a allow '"$SERVER_IP"'\/'"$MASK_LEN"'' /etc/chrony.conf
+       sed -i '$a allow '"$HOST_IP"'\/'"$MASK_LEN"'' /etc/chrony.conf
     else
        sed -i '$a\server '"$MASTERNAME"' iburst' /etc/chrony.conf 
     fi
