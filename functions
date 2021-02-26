@@ -26,7 +26,7 @@ env_set()
 #Set other nodes in /etc/hosts
     for key in  ${!SIBLINGS[*]}; do
         echo " $key ${SIBLINGS[$key]}"
-        sed -i '$a '"${SIBLINGS[$key]}"'    '"$key"'' /etc/hosts
+        sed -i '$a '"${SIBLINGS[$key]}"' '"$key"'' /etc/hosts
     done
 
 }
