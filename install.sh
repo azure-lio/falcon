@@ -59,11 +59,6 @@ function_main()
         install_netfilter
         install_controller_neutron
         install_dashboard
-        echo "=====Install Successfully  within a control node====="
-        echo "Your dashborad address:http://$HOST_IP/dashboard/"
-        echo "Doamin:Default"
-        echo "User name:admin"
-        echo "Password:$PASSWORD"
     fi
 #IF in allinone mode ,we install control modules before this
 
